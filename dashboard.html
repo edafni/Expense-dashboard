@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Max Credit Dashboard</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #070a14;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panelBorder: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.68);
+        --accent: #7c7cff;
+        --good: #10b981;
+        --bad: #f43f5e;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        --radius: 18px;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7fb;
+          --panel: rgba(0, 0, 0, 0.04);
+          --panelBorder: rgba(0, 0, 0, 0.10);
+          --text: rgba(0, 0, 0, 0.86);
+          --muted: rgba(0, 0, 0, 0.62);
+          --shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background:
+          radial-gradient(900px 520px at 14% 10%, rgba(124, 124, 255, 0.30), transparent 58%),
+          radial-gradient(900px 520px at 86% 16%, rgba(16, 185, 129, 0.20), transparent 60%),
+          radial-gradient(1100px 640px at 50% 92%, rgba(244, 63, 94, 0.14), transparent 62%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 18px 22px;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(22px, 3vw, 30px);
+        letter-spacing: -0.02em;
+      }
+
+      .subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      .segmented {
+        display: inline-flex;
+        padding: 4px;
+        border-radius: 999px;
+        border: 1px solid var(--panelBorder);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        padding: 9px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      button[aria-pressed="true"] {
+        background: rgba(99, 102, 241, 0.24);
+        box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.45);
+      }
+
+      .pill {
+        border: 1px solid var(--panelBorder);
+        background: var(--panel);
+        padding: 9px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .panel {
+        border: 1px solid var(--panelBorder);
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px 14px 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.4fr 0.9fr;
+        gap: 14px;
+      }
+
+      @media (max-width: 920px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel h2 {
+        margin: 2px 0 10px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .row .left {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: rgba(248, 113, 113, 0.95);
+        background: rgba(248, 113, 113, 0.12);
+        border: 1px solid rgba(248, 113, 113, 0.25);
+        padding: 10px 12px;
+        border-radius: 12px;
+        margin-top: 12px;
+        display: none;
+        white-space: pre-wrap;
+      }
+
+      .filePick {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      input[type="file"] {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input[type="date"] {
+        font-size: 12px;
+        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--panelBorder);
+        border-radius: 999px;
+        padding: 8px 10px;
+      }
+
+      select {
+        font-size: 12px;
+        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--panelBorder);
+        border-radius: 999px;
+        padding: 8px 10px;
+      }
+
+      canvas {
+        width: 100% !important;
+        height: clamp(260px, 34vh, 420px) !important;
+      }
+
+      #pie {
+        height: clamp(260px, 34vh, 420px) !important;
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      @media (max-width: 620px) {
+        .kpis {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .kpi {
+        border: 1px solid var(--panelBorder);
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.10);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .kpi {
+          background: rgba(255, 255, 255, 0.55);
+        }
+      }
+
+      .kpi .label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .kpi .value {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .topCats {
+        margin-top: 12px;
+        border-top: 1px solid var(--panelBorder);
+        padding-top: 12px;
+      }
+
+      .topCats h3 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .catList {
+        display: grid;
+        gap: 8px;
+      }
+
+      .catRow {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: baseline;
+        padding: 8px 10px;
+        border: 1px solid var(--panelBorder);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.10);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .catRow {
+          background: rgba(255, 255, 255, 0.55);
+        }
+      }
+
+      .catRow .name {
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .catRow .meta {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+        text-align: right;
+      }
+
+      details.catDetails {
+        border: 1px solid var(--panelBorder);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.10);
+        overflow: hidden;
+      }
+
+      @media (prefers-color-scheme: light) {
+        details.catDetails {
+          background: rgba(255, 255, 255, 0.55);
+        }
+      }
+
+      details.catDetails > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 10px 10px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: baseline;
+        user-select: none;
+      }
+
+      details.catDetails > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.catDetails[open] > summary {
+        box-shadow: inset 0 -1px 0 var(--panelBorder);
+      }
+
+      .txList {
+        padding: 10px 10px 12px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .txRow {
+        display: grid;
+        grid-template-columns: 92px 1fr auto;
+        gap: 10px;
+        align-items: baseline;
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .txRow {
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: rgba(0, 0, 0, 0.02);
+        }
+      }
+
+      .txRow .date {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+
+      .txRow .merchant {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 650;
+      }
+
+      .txRow .amt {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <h1>Max Credit Dashboard</h1>
+          <div class="subtitle">
+            Reads Excel exports from this folder and builds charts (expenses only: positive "סכום חיוב").
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="segmented" role="group" aria-label="Group by">
+            <button id="byMonth" aria-pressed="true" type="button">By month</button>
+            <button id="byWeek" aria-pressed="false" type="button">By week</button>
+          </div>
+
+          <button id="reload" class="pill" type="button">Reload files</button>
+        </div>
+      </header>
+
+      <section class="panel" style="margin-bottom: 14px">
+        <div class="row">
+          <div class="left">
+            <span class="pill" id="status">Loading…</span>
+            <span class="small" id="fileList"></span>
+          </div>
+          <div class="filePick" aria-label="Filters and inputs">
+            <span class="small">Card:</span>
+            <select id="cardSelect" aria-label="Select card">
+              <option value="__all__">All cards</option>
+            </select>
+            <span class="small">Date:</span>
+            <input id="dateFrom" type="date" />
+            <span class="small">to</span>
+            <input id="dateTo" type="date" />
+            <button id="clearDates" class="pill" type="button">Clear</button>
+            <span class="small">If auto-load fails, pick your folder:</span>
+            <input id="folderInput" type="file" webkitdirectory multiple accept=".xlsx,.csv" />
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">Transactions parsed</div>
+            <div class="value" id="kpiCount">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Total expenses (₪)</div>
+            <div class="value" id="kpiTotal">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Top category</div>
+            <div class="value" id="kpiTopCat">—</div>
+          </div>
+        </div>
+        <div class="topCats" aria-label="Top categories list">
+          <h3>Top 10 categories</h3>
+          <div class="catList" id="topCatsList"></div>
+        </div>
+        <div class="error" id="errorBox"></div>
+      </section>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Total expenses</h2>
+          <canvas id="bar"></canvas>
+        </section>
+
+        <section class="panel">
+          <h2>Expenses by category</h2>
+          <canvas id="pie"></canvas>
+        </section>
+      </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- SheetJS (XLSX parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+      const COLS = {
+        date: "תאריך עסקה",
+        category: "קטגוריה",
+        amount: "סכום חיוב",
+      };
+
+      const EXTRA_COLS = {
+        merchant: "שם בית העסק",
+        cardLast4: "4 ספרות אחרונות של כרטיס האשראי",
+      };
+
+      const els = {
+        status: document.getElementById("status"),
+        fileList: document.getElementById("fileList"),
+        errorBox: document.getElementById("errorBox"),
+        folderInput: document.getElementById("folderInput"),
+        cardSelect: document.getElementById("cardSelect"),
+        dateFrom: document.getElementById("dateFrom"),
+        dateTo: document.getElementById("dateTo"),
+        clearDates: document.getElementById("clearDates"),
+        byMonth: document.getElementById("byMonth"),
+        byWeek: document.getElementById("byWeek"),
+        reload: document.getElementById("reload"),
+        kpiCount: document.getElementById("kpiCount"),
+        kpiTotal: document.getElementById("kpiTotal"),
+        kpiTopCat: document.getElementById("kpiTopCat"),
+        topCatsList: document.getElementById("topCatsList"),
+      };
+
+      let groupBy = "month"; // "month" | "week"
+      let transactions = [];
+      let viewTransactions = [];
+      let barChart = null;
+      let pieChart = null;
+      let lastLoadedFilenames = [];
+      let dataMinDate = null; // Date (UTC midnight)
+      let dataMaxDate = null; // Date (UTC midnight)
+      let selectedCard = "__all__";
+
+      function setStatus(text) {
+        els.status.textContent = text;
+      }
+
+      function setError(err) {
+        if (!err) {
+          els.errorBox.style.display = "none";
+          els.errorBox.textContent = "";
+          return;
+        }
+        els.errorBox.style.display = "block";
+        els.errorBox.textContent = String(err);
+      }
+
+      function parseAmount(value) {
+        if (value == null || value === "") return null;
+        if (typeof value === "number") return value;
+        const s = String(value)
+          .trim()
+          .replace(/[₪,\s]/g, "")
+          .replace(/\u2212/g, "-"); // unicode minus
+        const n = Number(s);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function parseDate(value) {
+        if (value == null || value === "") return null;
+        if (value instanceof Date && !isNaN(value)) return value;
+
+        // Max exports can show dd/mm/yyyy or dd-mm-yyyy (and sometimes ISO yyyy-mm-dd).
+        const s = String(value).trim();
+        const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // dd/mm/yyyy
+        if (m1) {
+          const dd = Number(m1[1]);
+          const mm = Number(m1[2]);
+          const yyyy = Number(m1[3]);
+          const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+          return isNaN(d) ? null : d;
+        }
+
+        const m2 = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/); // dd-mm-yyyy
+        if (m2) {
+          const dd = Number(m2[1]);
+          const mm = Number(m2[2]);
+          const yyyy = Number(m2[3]);
+          const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+          return isNaN(d) ? null : d;
+        }
+
+        const m3 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); // yyyy-mm-dd
+        if (m3) {
+          const yyyy = Number(m3[1]);
+          const mm = Number(m3[2]);
+          const dd = Number(m3[3]);
+          const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+          return isNaN(d) ? null : d;
+        }
+
+        return null;
+      }
+
+      function basename(p) {
+        const s = String(p || "");
+        const parts = s.split("/").filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : s;
+      }
+
+      function toUtcDateOnly(d) {
+        return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      }
+
+      function dateInputValueFromUtcDate(d) {
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      function utcDateFromDateInputValue(v) {
+        if (!v) return null;
+        const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return null;
+        const yyyy = Number(m[1]);
+        const mm = Number(m[2]);
+        const dd = Number(m[3]);
+        const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+        return isNaN(d) ? null : d;
+      }
+
+      function formatILS(n) {
+        if (!Number.isFinite(n)) return "—";
+        return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
+      }
+
+      function isoWeekKey(date) {
+        // ISO week year/week, computed in UTC.
+        const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+        const day = d.getUTCDay() || 7; // 1..7
+        d.setUTCDate(d.getUTCDate() + 4 - day);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+        const weekYear = d.getUTCFullYear();
+        return `${weekYear}-W${String(weekNo).padStart(2, "0")}`;
+      }
+
+      function monthKey(date) {
+        return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+      }
+
+      function updateDataDateBounds(tx) {
+        let min = null;
+        let max = null;
+        for (const t of tx) {
+          if (!(t.date instanceof Date) || isNaN(t.date)) continue;
+          const d = toUtcDateOnly(t.date);
+          if (!min || d < min) min = d;
+          if (!max || d > max) max = d;
+        }
+        dataMinDate = min;
+        dataMaxDate = max;
+      }
+
+      function applyFilters() {
+        const from = utcDateFromDateInputValue(els.dateFrom.value);
+        const to = utcDateFromDateInputValue(els.dateTo.value);
+
+        viewTransactions = transactions.filter((t) => {
+          if (!(t.date instanceof Date) || isNaN(t.date)) return false;
+          if (selectedCard !== "__all__" && String(t.cardLast4 || "") !== selectedCard) return false;
+          const d = toUtcDateOnly(t.date);
+          if (from && d < from) return false;
+          if (to && d > to) return false;
+          return true;
+        });
+      }
+
+      function headerRowIndex(rows) {
+        // Find the first row that contains our required headers.
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i] || [];
+          if (r.includes(COLS.date) && r.includes(COLS.category) && r.includes(COLS.amount)) return i;
+        }
+        return -1;
+      }
+
+      function rowsToTransactions(rows) {
+        const idx = headerRowIndex(rows);
+        if (idx === -1) {
+          throw new Error(
+            `Could not find header row. Expected columns: "${COLS.date}", "${COLS.category}", "${COLS.amount}".`
+          );
+        }
+
+        const header = rows[idx].map((c) => (c == null ? "" : String(c).trim()));
+        const colIndex = {
+          date: header.indexOf(COLS.date),
+          category: header.indexOf(COLS.category),
+          amount: header.indexOf(COLS.amount),
+          merchant: header.indexOf(EXTRA_COLS.merchant),
+          cardLast4: header.indexOf(EXTRA_COLS.cardLast4),
+        };
+
+        const out = [];
+        for (let i = idx + 1; i < rows.length; i++) {
+          const r = rows[i] || [];
+          const d = parseDate(r[colIndex.date]);
+          const cat = (r[colIndex.category] == null ? "" : String(r[colIndex.category]).trim()) || "Uncategorized";
+          const merchant =
+            colIndex.merchant >= 0 ? (r[colIndex.merchant] == null ? "" : String(r[colIndex.merchant]).trim()) : "";
+          const cardLast4 =
+            colIndex.cardLast4 >= 0
+              ? (r[colIndex.cardLast4] == null ? "" : String(r[colIndex.cardLast4]).trim())
+              : "";
+          const amt = parseAmount(r[colIndex.amount]);
+          if (!d || amt == null) continue;
+          out.push({ date: d, category: cat, merchant, cardLast4, amount: amt });
+        }
+        return out;
+      }
+
+      async function fetchManifestFiles() {
+        const res = await fetch("./manifest.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`Failed to load manifest.json (${res.status})`);
+        const manifest = await res.json();
+        if (!manifest || !Array.isArray(manifest.files)) throw new Error(`manifest.json is missing "files" array`);
+        return manifest.files;
+      }
+
+      async function readWorkbookFromArrayBuffer(buf) {
+        return XLSX.read(buf, { type: "array", cellDates: true, raw: true });
+      }
+
+      function sheetToRows(wb) {
+        const sheetName = wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+        return XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" });
+      }
+
+      function rowsFromCsvText(text) {
+        const wb = XLSX.read(text, { type: "string", cellDates: true, raw: true });
+        return sheetToRows(wb);
+      }
+
+      async function loadFromManifest() {
+        const allFiles = await fetchManifestFiles();
+        const files = allFiles.filter((n) => /\.(xlsx|csv)$/i.test(n));
+        lastLoadedFilenames = files.slice();
+        els.fileList.textContent = files.length
+          ? `Files: ${files.map((f) => basename(f)).join(", ")}`
+          : "No .xlsx/.csv files listed in manifest.json";
+
+        const payloads = await Promise.all(
+          files.map(async (name) => {
+            const res = await fetch(`./${encodeURIComponent(name)}`, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Failed to load "${name}" (${res.status})`);
+            if (/\.csv$/i.test(name)) return { name, kind: "csv", text: await res.text() };
+            return { name, kind: "xlsx", buf: await res.arrayBuffer() };
+          })
+        );
+
+        const all = [];
+        for (const p of payloads) {
+          let rows;
+          if (p.kind === "csv") {
+            rows = rowsFromCsvText(p.text);
+          } else {
+            const wb = await readWorkbookFromArrayBuffer(p.buf);
+            rows = sheetToRows(wb);
+          }
+          const tx = rowsToTransactions(rows).map((t) => ({ ...t, source: name }));
+          all.push(...tx);
+        }
+        return all;
+      }
+
+      async function loadFromFolderPicker(fileList) {
+        const files = Array.from(fileList).filter((f) => /\.(xlsx|csv)$/i.test(f.name));
+        if (!files.length) throw new Error("No .xlsx/.csv files selected.");
+
+        lastLoadedFilenames = files.map((f) => f.name);
+        els.fileList.textContent = `Picked: ${lastLoadedFilenames.join(", ")}`;
+
+        const all = [];
+        for (const f of files) {
+          let rows;
+          if (/\.csv$/i.test(f.name)) {
+            const text = await f.text();
+            rows = rowsFromCsvText(text);
+          } else {
+            const buf = await f.arrayBuffer();
+            const wb = await readWorkbookFromArrayBuffer(buf);
+            rows = sheetToRows(wb);
+          }
+          const tx = rowsToTransactions(rows).map((t) => ({ ...t, source: f.name }));
+          all.push(...tx);
+        }
+        return all;
+      }
+
+      function computeAggregations(tx) {
+        // Definitions:
+        // - Date is taken from: "תאריך עסקה"
+        // - Expense is taken from: "סכום חיוב" (positive values only)
+        const expenses = tx.filter((t) => Number.isFinite(t.amount) && t.amount > 0);
+
+        const perPeriod = new Map();
+        const perCategory = new Map();
+        let total = 0;
+
+        for (const t of expenses) {
+          total += t.amount;
+          const p = groupBy === "week" ? isoWeekKey(t.date) : monthKey(t.date);
+          perPeriod.set(p, (perPeriod.get(p) || 0) + t.amount);
+          perCategory.set(t.category, (perCategory.get(t.category) || 0) + t.amount);
+        }
+
+        const periodLabels = Array.from(perPeriod.keys()).sort();
+        const periodValues = periodLabels.map((k) => perPeriod.get(k));
+
+        const sortedCats = Array.from(perCategory.entries()).sort((a, b) => b[1] - a[1]);
+
+        // Pie: keep readable (top 12 + Other)
+        const pieCats = sortedCats.slice(0, 12);
+        const otherSum = sortedCats.slice(12).reduce((s, [, v]) => s + v, 0);
+        if (otherSum > 0) pieCats.push(["Other", otherSum]);
+
+        // List: top 10 (no "Other")
+        const top10 = sortedCats.slice(0, 10);
+
+        const topCategory = sortedCats.length ? sortedCats[0][0] : "—";
+        return {
+          expensesCount: expenses.length,
+          total,
+          periodLabels,
+          periodValues,
+          pieCategories: pieCats,
+          top10Categories: top10,
+          topCategory,
+        };
+      }
+
+      function colorPalette(n) {
+        const base = [
+          "#6366f1",
+          "#10b981",
+          "#f43f5e",
+          "#f59e0b",
+          "#22c55e",
+          "#06b6d4",
+          "#a855f7",
+          "#ef4444",
+          "#84cc16",
+          "#0ea5e9",
+          "#fb7185",
+          "#14b8a6",
+          "#eab308",
+        ];
+        const out = [];
+        for (let i = 0; i < n; i++) out.push(base[i % base.length]);
+        return out;
+      }
+
+      function updateCardOptions(tx) {
+        const cards = Array.from(
+          new Set(tx.map((t) => String(t.cardLast4 || "").trim()).filter(Boolean))
+        ).sort();
+
+        const hadSelection = selectedCard;
+        els.cardSelect.innerHTML = `<option value="__all__">All cards</option>`;
+        for (const c of cards) {
+          const opt = document.createElement("option");
+          opt.value = c;
+          opt.textContent = `•••• ${c}`;
+          els.cardSelect.appendChild(opt);
+        }
+
+        // Keep selection if still available; otherwise reset to all.
+        if (hadSelection !== "__all__" && cards.includes(hadSelection)) {
+          selectedCard = hadSelection;
+          els.cardSelect.value = hadSelection;
+        } else {
+          selectedCard = "__all__";
+          els.cardSelect.value = "__all__";
+        }
+      }
+
+      function renderTop10(agg) {
+        els.topCatsList.innerHTML = "";
+        const total = agg.total || 0;
+        if (!agg.top10Categories.length) {
+          els.topCatsList.innerHTML = `<div class="small">No expenses in selected period.</div>`;
+          return;
+        }
+        for (const [name, value] of agg.top10Categories) {
+          const pct = total > 0 ? (value / total) * 100 : 0;
+          const details = document.createElement("details");
+          details.className = "catDetails";
+
+          const safeTitle = String(name).replaceAll('"', "&quot;");
+          details.innerHTML = `
+            <summary>
+              <div class="name" title="${safeTitle}">${name}</div>
+              <div class="meta">₪${formatILS(value)} • ${pct.toFixed(1)}%</div>
+            </summary>
+            <div class="txList" data-category="${safeTitle}"></div>
+          `;
+
+          details.addEventListener("toggle", () => {
+            if (!details.open) return;
+            const txList = details.querySelector(".txList");
+            if (txList.dataset.loaded === "1") return;
+
+            const catName = name;
+            const tx = viewTransactions
+              .filter((t) => t.category === catName && Number.isFinite(t.amount) && t.amount > 0)
+              .slice()
+              .sort((a, b) => b.date - a.date);
+
+            if (!tx.length) {
+              txList.innerHTML = `<div class="small">No transactions.</div>`;
+              txList.dataset.loaded = "1";
+              return;
+            }
+
+            const html = tx
+              .map((t) => {
+                const d = toUtcDateOnly(t.date);
+                const dateStr = dateInputValueFromUtcDate(d);
+                const merchant = (t.merchant || "").trim() || "—";
+                return `
+                  <div class="txRow">
+                    <div class="date">${dateStr}</div>
+                    <div class="merchant" title="${merchant.replaceAll('"', "&quot;")}">${merchant}</div>
+                    <div class="amt">₪${formatILS(t.amount)}</div>
+                  </div>
+                `;
+              })
+              .join("");
+            txList.innerHTML = html;
+            txList.dataset.loaded = "1";
+          });
+
+          els.topCatsList.appendChild(details);
+        }
+      }
+
+      function renderAll() {
+        applyFilters();
+        // Reset expanded transaction lists (since the filter changed)
+        for (const el of els.topCatsList.querySelectorAll(".txList")) el.dataset.loaded = "0";
+        const agg = computeAggregations(viewTransactions);
+
+        els.kpiCount.textContent = String(agg.expensesCount);
+        els.kpiTotal.textContent = formatILS(agg.total);
+        els.kpiTopCat.textContent = agg.topCategory;
+        renderTop10(agg);
+
+        const barCtx = document.getElementById("bar");
+        const pieCtx = document.getElementById("pie");
+
+        const barData = {
+          labels: agg.periodLabels,
+          datasets: [
+            {
+              label: groupBy === "week" ? "Expenses per week (₪)" : "Expenses per month (₪)",
+              data: agg.periodValues,
+              backgroundColor: "rgba(99, 102, 241, 0.55)",
+              borderColor: "rgba(99, 102, 241, 0.95)",
+              borderWidth: 1,
+              borderRadius: 10,
+            },
+          ],
+        };
+
+        const pieLabels = agg.pieCategories.map(([k]) => k);
+        const pieValues = agg.pieCategories.map(([, v]) => v);
+        const pieColors = colorPalette(pieLabels.length);
+
+        const pieData = {
+          labels: pieLabels,
+          datasets: [
+            {
+              data: pieValues,
+              backgroundColor: pieColors.map((c) => `${c}cc`),
+              borderColor: pieColors,
+              borderWidth: 1,
+            },
+          ],
+        };
+
+        const commonOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue("--text") } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const v = typeof ctx.parsed === "number" ? ctx.parsed : ctx.parsed?.y;
+                  return `${ctx.label || ""}: ₪${formatILS(v)}`;
+                },
+              },
+            },
+          },
+          interaction: { mode: "index", intersect: false },
+        };
+
+        if (barChart) barChart.destroy();
+        if (pieChart) pieChart.destroy();
+
+        barChart = new Chart(barCtx, {
+          type: "bar",
+          data: barData,
+          options: {
+            ...commonOptions,
+            scales: {
+              x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue("--muted") } },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  color: getComputedStyle(document.documentElement).getPropertyValue("--muted"),
+                  callback: (v) => `₪${formatILS(v)}`,
+                },
+                grid: { color: "rgba(255,255,255,0.08)" },
+              },
+            },
+          },
+        });
+
+        pieChart = new Chart(pieCtx, {
+          type: "pie",
+          data: pieData,
+          options: commonOptions,
+        });
+      }
+
+      function setGroup(next) {
+        groupBy = next;
+        els.byMonth.setAttribute("aria-pressed", String(groupBy === "month"));
+        els.byWeek.setAttribute("aria-pressed", String(groupBy === "week"));
+        if (transactions.length) renderAll();
+      }
+
+      async function reload() {
+        setError(null);
+        setStatus("Loading…");
+        try {
+          let tx;
+          try {
+            tx = await loadFromManifest();
+          } catch (e) {
+            // Common when opening as file:// (fetch blocked). Provide clear fallback.
+            setStatus("Auto-load failed (pick folder)");
+            setError(
+              `Auto-load failed.\n\nIf you opened this file directly, please run a local server (recommended):\n- In this folder: python3 -m http.server 8000\n- Then open: http://localhost:8000/dashboard.html\n\nOr use the folder picker above.\n\nDetails: ${e}`
+            );
+            return;
+          }
+
+          transactions = tx;
+          updateCardOptions(transactions);
+          updateDataDateBounds(transactions);
+          if (dataMinDate && dataMaxDate) {
+            if (!els.dateFrom.value) els.dateFrom.value = dateInputValueFromUtcDate(dataMinDate);
+            if (!els.dateTo.value) els.dateTo.value = dateInputValueFromUtcDate(dataMaxDate);
+          }
+          setStatus(`Loaded ${transactions.length} transactions`);
+          renderAll();
+        } catch (e) {
+          setStatus("Error");
+          setError(e);
+        }
+      }
+
+      els.byMonth.addEventListener("click", () => setGroup("month"));
+      els.byWeek.addEventListener("click", () => setGroup("week"));
+      els.reload.addEventListener("click", reload);
+
+      els.folderInput.addEventListener("change", async (e) => {
+        setError(null);
+        setStatus("Loading…");
+        try {
+          const tx = await loadFromFolderPicker(e.target.files);
+          transactions = tx;
+          updateCardOptions(transactions);
+          updateDataDateBounds(transactions);
+          if (dataMinDate && dataMaxDate) {
+            els.dateFrom.value = dateInputValueFromUtcDate(dataMinDate);
+            els.dateTo.value = dateInputValueFromUtcDate(dataMaxDate);
+          }
+          setStatus(`Loaded ${transactions.length} transactions`);
+          renderAll();
+        } catch (err) {
+          setStatus("Error");
+          setError(err);
+        }
+      });
+
+      function clearDates() {
+        els.dateFrom.value = dataMinDate ? dateInputValueFromUtcDate(dataMinDate) : "";
+        els.dateTo.value = dataMaxDate ? dateInputValueFromUtcDate(dataMaxDate) : "";
+        if (transactions.length) renderAll();
+      }
+
+      els.clearDates.addEventListener("click", clearDates);
+      els.dateFrom.addEventListener("change", () => transactions.length && renderAll());
+      els.dateTo.addEventListener("change", () => transactions.length && renderAll());
+      els.cardSelect.addEventListener("change", (e) => {
+        selectedCard = e.target.value || "__all__";
+        transactions.length && renderAll();
+      });
+
+      reload();
+    </script>
+  </body>
+</html>
