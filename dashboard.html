@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Max Credit Dashboard</title>
+    <title>Credit Cards Dashboard</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -391,15 +391,71 @@
         text-align: right;
         color: var(--text);
       }
+
+      @media (max-width: 520px) {
+        .container {
+          padding: 14px 12px;
+        }
+
+        header {
+          align-items: flex-start;
+        }
+
+        .controls {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .row .left {
+          width: 100%;
+        }
+
+        .filePick {
+          width: 100%;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        canvas,
+        #pie {
+          height: clamp(220px, 30vh, 320px) !important;
+        }
+
+        .txRow {
+          grid-template-columns: 78px 1fr;
+          grid-template-areas:
+            "date amt"
+            "merchant merchant";
+          align-items: center;
+        }
+
+        .txRow .date {
+          grid-area: date;
+        }
+        .txRow .amt {
+          grid-area: amt;
+        }
+        .txRow .merchant {
+          grid-area: merchant;
+          white-space: normal;
+          overflow: visible;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <header>
         <div>
-          <h1>Max Credit Dashboard</h1>
+          <h1>Credit Cards Dashboard</h1>
           <div class="subtitle">
-            Reads Excel exports from this folder and builds charts (expenses only: positive "סכום חיוב").
+            Reads card exports and builds charts (expenses only: positive "סכום חיוב").
           </div>
         </div>
 
